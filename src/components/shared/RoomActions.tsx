@@ -13,6 +13,7 @@ import { useState } from "react"
 import { Room } from "@prisma/client"
 import { EditRoomForm } from "./EditRoomForm"
 
+
 /**
  * Komponen aksi untuk setiap baris kamar.
  * Menggunakan tipe data Room dari Prisma untuk menghindari penggunaan 'any'.

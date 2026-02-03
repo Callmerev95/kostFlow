@@ -1,9 +1,11 @@
 import { getRooms } from "@/actions/rooms"
 import { AddRoomForm } from "@/components/shared/AddRoomForm"
 import { RoomActions } from "@/components/shared/RoomActions"
+import { CheckInForm } from "@/components/shared/CheckInForm"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { createClient } from "@/lib/supabase-server"
 import { redirect } from "next/navigation"
+import { Badge } from "@/components/ui/badge"
 
 
 /**
@@ -48,8 +50,13 @@ export default async function RoomsPage() {
               <TableRow key={room.id}>
                 <TableCell className="font-medium">{room.roomNumber}</TableCell>
                 <TableCell>Rp {room.price.toLocaleString("id-ID")}</TableCell>
-                <TableCell>{room.status}</TableCell>
-                <TableCell className="text-right">
+                <TableCell>
+                  <Badge variant={room.status === "AVAILABLE" ? "outline" : "destructive"}>
+                    {room.status === "AVAILABLE" ? "Tersedia" : "Terisi"}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right flex justify-end gap-2">
+                  {room.status === "AVAILABLE" && <CheckInForm room={room} />}
                   <RoomActions room={room} />
                 </TableCell>
               </TableRow>
