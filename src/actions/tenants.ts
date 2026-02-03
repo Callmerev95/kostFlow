@@ -40,3 +40,23 @@ export async function createTenant(formData: FormData, roomId: string) {
     return { error: "Gagal menambahkan penghuni." };
   }
 }
+
+/**
+ * Mengambil semua daftar penghuni yang aktif.
+ * Menggunakan 'include' untuk join data dengan tabel Room.
+ */
+export async function getTenants(userId: string) {
+  return await prisma.tenant.findMany({
+    where: {
+      room: {
+        userId: userId,
+      },
+    },
+    include: {
+      room: true,
+    },
+    orderBy: {
+      startDate: "desc", 
+    },
+  });
+}
