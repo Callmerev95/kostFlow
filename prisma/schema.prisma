@@ -26,9 +26,12 @@ model User {
   name           String
   kostName       String
   whatsappNumber String
+  bankName       String?   // Contoh: BCA, Mandiri
+  accountNumber  String?   // Contoh: 123456789
+  accountName    String?   // Contoh: Rev
   rooms          Room[]
   createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt // Cukup gunakan @updatedAt
+  updatedAt      DateTime  @updatedAt 
 }
 
 model Room {
@@ -69,5 +72,5 @@ model Transaction {
   token        String?            @unique @default(uuid()) 
   waSentAt     DateTime?         
   createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @default(now())  @updatedAt
+  updatedAt    DateTime           @updatedAt
 }
