@@ -20,27 +20,27 @@ enum TransactionStatus {
 }
 
 model User {
-  id             String   @id @default(uuid())
-  email          String   @unique
+  id             String    @id @default(uuid())
+  email          String    @unique
   password       String
   name           String
   kostName       String
   whatsappNumber String
   rooms          Room[]
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @default(now()) @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt // Cukup gunakan @updatedAt
 }
 
 model Room {
-  id         String     @id @default(uuid())
-  roomNumber String
-  price      Int
-  status     RoomStatus @default(AVAILABLE)
-  userId     String
-  user       User       @relation(fields: [userId], references: [id])
-  tenant     Tenant?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now()) @updatedAt
+  id          String     @id @default(uuid())
+  roomNumber  String
+  price       Int
+  status      RoomStatus @default(AVAILABLE)
+  userId      String
+  user        User       @relation(fields: [userId], references: [id])
+  tenant      Tenant?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 model Tenant {
@@ -51,8 +51,8 @@ model Tenant {
   roomId       String        @unique
   room         Room          @relation(fields: [roomId], references: [id])
   transactions Transaction[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now()) @updatedAt
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model Transaction {
@@ -62,9 +62,12 @@ model Transaction {
   amount       Int
   status       TransactionStatus @default(PENDING)
   dueDate      DateTime
-  paymentProof String?           // URL dari Supabase Storage
+  paymentProof String?           
   paidAt       DateTime?
   tenantId     String
   tenant       Tenant            @relation(fields: [tenantId], references: [id])
+  token        String?            @unique @default(uuid()) 
+  waSentAt     DateTime?         
   createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @default(now())  @updatedAt
 }
