@@ -28,7 +28,7 @@ model User {
   whatsappNumber String
   rooms          Room[]
   createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  updatedAt      DateTime @default(now()) @updatedAt
 }
 
 model Room {
@@ -39,6 +39,8 @@ model Room {
   userId     String
   user       User       @relation(fields: [userId], references: [id])
   tenant     Tenant?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 }
 
 model Tenant {
@@ -49,6 +51,8 @@ model Tenant {
   roomId       String        @unique
   room         Room          @relation(fields: [roomId], references: [id])
   transactions Transaction[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
 }
 
 model Transaction {

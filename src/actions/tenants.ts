@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { RoomStatus } from "@prisma/client";
 
 /**
  * Mencatat penghuni baru dan mengubah status kamar menjadi OCCUPIED.
@@ -18,21 +19,22 @@ export async function createTenant(formData: FormData, roomId: string) {
         data: {
           name,
           phoneNumber,
-          startDate: new Date(), // Default tanggal hari ini
+          startDate: new Date(),
           roomId,
         },
       });
 
-      // 2. Update status kamar terkait menjadi TERISI
+      // 2. Update status kamar
       await tx.room.update({
         where: { id: roomId },
-        data: { status: "OCCUPIED" },
+        data: { status: RoomStatus.OCCUPIED },
       });
     });
 
     // Refresh data di kedua halaman terkait
     revalidatePath("/dashboard/rooms");
-    revalidatePath("/dashboard/page");
+    revalidatePath("/dashboard/tenants");
+    revalidatePath("/dashboard");
 
     return { success: true };
   } catch (error) {
@@ -56,7 +58,36 @@ export async function getTenants(userId: string) {
       room: true,
     },
     orderBy: {
-      startDate: "desc", 
+      startDate: "desc",
     },
   });
+}
+
+/**
+ * Melakukan proses check-out: Menghapus data tenant dan mengubah status kamar ke AVAILABLE.
+ */
+export async function checkOutTenant(tenantId: string, roomId: string) {
+  try {
+    await prisma.$transaction(async (tx) => {
+      // 1. Hapus tenant
+      await tx.tenant.delete({
+        where: { id: tenantId },
+      });
+
+      // 2. Kembalikan status kamar ke AVAILABLE
+      await tx.room.update({
+        where: { id: roomId },
+        data: { status: RoomStatus.AVAILABLE },
+      });
+    });
+
+    revalidatePath("/dashboard/tenants");
+    revalidatePath("/dashboard/rooms");
+    revalidatePath("/dashboard");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error during check-out:", error);
+    return { error: "Gagal melakukan proses check-out." };
+  }
 }
