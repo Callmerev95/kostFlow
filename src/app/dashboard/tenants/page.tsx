@@ -1,6 +1,7 @@
 import { getTenants } from "@/actions/tenants"
 import { createClient } from "@/lib/supabase-server"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { TenantActions } from "@/components/shared/TenantActions"
 import { redirect } from "next/navigation"
 
 /**
@@ -43,8 +44,11 @@ export default async function TenantsPage() {
                   {new Date(tenant.startDate).toLocaleDateString("id-ID")}
                 </TableCell>
                 <TableCell className="text-right">
-                  {/* Nanti kita pasang tombol Check-out di sini */}
-                  <span className="text-slate-400 text-sm italic">Opsi aktif</span>
+                  <TenantActions
+                    tenantId={tenant.id}
+                    roomId={tenant.roomId}
+                    tenantName={tenant.name}
+                  />
                 </TableCell>
               </TableRow>
             ))}
