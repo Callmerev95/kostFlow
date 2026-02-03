@@ -1,7 +1,7 @@
 import { getRooms } from "@/actions/rooms"
+import { AddRoomForm } from "@/components/shared/AddRoomForm"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
 
 /**
  * Halaman utama manajemen kamar.
@@ -10,7 +10,8 @@ import { Plus } from "lucide-react"
 export default async function RoomsPage() {
   // Catatan: Nanti kita ambil userId asli dari session Supabase
   // Untuk tes awal, kita pastikan data ditarik dengan benar
-  const rooms = await getRooms("f95e26ab-ce35-4402-a0b8-a14df78e4225")
+  const userId = "f95e26ab-ce35-4402-a0b8-a14df78e4225"
+  const rooms = await getRooms(userId)
 
   return (
     <div className="space-y-6">
@@ -19,9 +20,7 @@ export default async function RoomsPage() {
           <h1 className="text-2xl font-bold">Daftar Kamar</h1>
           <p className="text-slate-500">Total ada {rooms.length} unit kamar.</p>
         </div>
-        <Button className="flex items-center gap-2">
-          <Plus size={18} /> Tambah Kamar
-        </Button>
+        <AddRoomForm userId={userId} />
       </div>
 
       <div className="bg-white border rounded-lg">
