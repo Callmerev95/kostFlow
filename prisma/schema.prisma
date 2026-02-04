@@ -29,6 +29,9 @@ model User {
   bankName       String?   // Contoh: BCA, Mandiri
   accountNumber  String?   // Contoh: 123456789
   accountName    String?   // Contoh: Rev
+  ewalletName    String?   // Contoh: DANA, OVO
+  ewalletNumber  String?   
+  qrisImage      String?   // URL Cloudinary/Supabase Storage
   rooms          Room[]
   tenants      Tenant[]
   createdAt      DateTime  @default(now())
