@@ -3,8 +3,18 @@
 import { LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { checkOutTenant } from "@/actions/tenants"
-import { useState } from "react"
-import { toast } from "sonner";
+import { toast } from "sonner"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface TenantActionsProps {
   tenantId: string
@@ -12,47 +22,50 @@ interface TenantActionsProps {
   tenantName: string
 }
 
-/**
- * Komponen aksi untuk penghuni.
- * Menangani proses Check-out dengan konfirmasi.
- */
 export function TenantActions({ tenantId, roomId, tenantName }: TenantActionsProps) {
-  const [isLoading, setIsLoading] = useState(false)
 
   const handleCheckOut = async () => {
-    const isConfirmed = confirm(
-      `Apakah Anda yakin ingin melakukan Check-out untuk ${tenantName}? \nSeluruh data transaksi terkait juga akan dihapus.`
-    )
-
-    if (!isConfirmed) return
-
-    setIsLoading(true)
-    const result = await checkOutTenant(tenantId, roomId)
-    setIsLoading(false)
-
-    if (result.success) {
-      // Notifikasi sukses 
-      toast.success("Check-out Berhasil", {
-        description: `${tenantName} telah keluar dan kamar kini tersedia kembali.`,
-      })
-    } else {
-      // Notifikasi error jika terjadi kendala (termasuk foreign key violation)
-      toast.error("Gagal Check-out", {
-        description: result.error || "Terjadi kesalahan saat memproses data.",
-      })
-    }
-  }
+    // Menggunakan toast.promise untuk UX yang lebih interaktif
+    toast.promise(checkOutTenant(tenantId, roomId), {
+      loading: `Sedang memproses check-out ${tenantName}...`,
+      success: (result) => {
+        if (result.error) throw new Error(result.error);
+        return `${tenantName} berhasil check-out. Kamar kini tersedia.`;
+      },
+      error: (err) => err.message || "Gagal melakukan check-out.",
+    });
+  };
 
   return (
-    <Button
-      variant="destructive"
-      size="sm"
-      onClick={handleCheckOut}
-      disabled={isLoading}
-      className="flex items-center gap-2 transition-all active:scale-95"
-    >
-      <LogOut size={14} />
-      {isLoading ? "Memproses..." : "Check-out"}
-    </Button>
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button
+          variant="destructive"
+          size="sm"
+          className="flex items-center gap-2 transition-all active:scale-95"
+        >
+          <LogOut size={14} />
+          Check-out
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Konfirmasi Check-out</AlertDialogTitle>
+          <AlertDialogDescription>
+            Apakah Anda yakin ingin mengeluarkan <strong>{tenantName}</strong>?
+            Tindakan ini akan menghapus semua data transaksi terkait dan status kamar akan kembali tersedia.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Batal</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleCheckOut}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            Ya, Check-out
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }
