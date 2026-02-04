@@ -3,49 +3,62 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { RoomStatus } from "@prisma/client";
+import { createClient } from "@/lib/supabase-server";
 
 /**
  * Mencatat penghuni baru, update status kamar, dan BUAT TAGIHAN OTOMATIS.
  */
-export async function createTenant(formData: FormData, roomId: string) {
+export async function createTenant(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser();
+
+  if (!authUser) {
+    return { error: "Unauthorized" };
+  }
+
   const name = formData.get("name") as string;
   const phoneNumber = formData.get("phoneNumber") as string;
   const price = parseInt(formData.get("price") as string);
+  const roomId = formData.get("roomId") as string;
 
   const now = new Date();
 
   try {
     await prisma.$transaction(async (tx) => {
-      // 1. Simpan data penghuni baru
+      // 2. Simpan data penghuni baru (WAJIB sertakan userId)
       const newTenant = await tx.tenant.create({
         data: {
           name,
           phoneNumber,
           startDate: new Date(),
           roomId,
+          userId: authUser.id, // FIX: TypeScript tidak akan protes lagi
         },
       });
 
-      // 2. Update status kamar
+      // 3. Update status kamar
       await tx.room.update({
         where: { id: roomId },
         data: { status: RoomStatus.OCCUPIED },
       });
 
-      // 3. Buat Tagihan Otomatis untuk bulan pertama
+      // 4. Buat Tagihan Otomatis untuk bulan pertama
       await tx.transaction.create({
         data: {
           tenantId: newTenant.id,
           amount: price,
-          month: now.getMonth() + 1, // getMonth() itu 0-11
+          month: now.getMonth() + 1,
           year: now.getFullYear(),
           status: "PENDING",
-          dueDate: new Date(now.getFullYear(), now.getMonth(), 10), // Contoh: Jatuh tempo setiap tanggal 10
+          // Jatuh tempo tanggal 10 bulan berjalan
+          dueDate: new Date(now.getFullYear(), now.getMonth(), 10),
         },
       });
     });
 
-    // Refresh data di kedua halaman terkait
+    // Refresh semua halaman terkait
     revalidatePath("/dashboard/transactions");
     revalidatePath("/dashboard/rooms");
     revalidatePath("/dashboard/tenants");
@@ -59,15 +72,12 @@ export async function createTenant(formData: FormData, roomId: string) {
 }
 
 /**
- * Mengambil semua daftar penghuni yang aktif.
- * Menggunakan 'include' untuk join data dengan tabel Room.
+ * Mengambil daftar penghuni milik owner yang sedang login.
  */
 export async function getTenants(userId: string) {
   return await prisma.tenant.findMany({
     where: {
-      room: {
-        userId: userId,
-      },
+      userId: userId, // Sekarang bisa langsung begini, lebih efisien!
     },
     include: {
       room: true,
@@ -79,7 +89,7 @@ export async function getTenants(userId: string) {
 }
 
 /**
- * Melakukan proses check-out: Menghapus data tenant dan mengubah status kamar ke AVAILABLE.
+ * Proses check-out: Hapus data tenant dan kembalikan status kamar.
  */
 export async function checkOutTenant(tenantId: string, roomId: string) {
   try {
