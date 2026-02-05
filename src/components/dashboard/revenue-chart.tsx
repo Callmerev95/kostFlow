@@ -5,18 +5,18 @@ import {
   Area,
   XAxis,
   YAxis,
+  CartesianGrid,
   Tooltip,
   ResponsiveContainer
 } from "recharts"
 
-// Data dummy sementara (nanti kita buatkan server action untuk narik data asli)
 const data = [
-  { name: "Jan", total: 4000000 },
-  { name: "Feb", total: 3000000 },
-  { name: "Mar", total: 5000000 },
-  { name: "Apr", total: 4500000 },
-  { name: "May", total: 6000000 },
-  { name: "Jun", total: 5500000 },
+  { name: "Jan", total: 12000000 },
+  { name: "Feb", total: 18000000 },
+  { name: "Mar", total: 15000000 },
+  { name: "Apr", total: 25000000 },
+  { name: "May", total: 32000000 },
+  { name: "Jun", total: 28000000 },
 ]
 
 export function RevenueChart() {
@@ -34,13 +34,16 @@ export function RevenueChart() {
 
       <div className="h-62.5 w-full relative z-10">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <AreaChart data={data} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
             <defs>
               <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.3} />
                 <stop offset="95%" stopColor="#D4AF37" stopOpacity={0} />
               </linearGradient>
             </defs>
+
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.03)" />
+
             <Tooltip
               contentStyle={{
                 backgroundColor: "#0A0A0A",
@@ -49,7 +52,42 @@ export function RevenueChart() {
                 fontSize: "12px"
               }}
               itemStyle={{ color: "#D4AF37", fontWeight: "bold" }}
+              // FIX: Handle undefined value agar TS tidak error
+              formatter={(value: number | undefined) => {
+                if (typeof value === "undefined") return ["Rp0", "Total"];
+                return [
+                  new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    maximumFractionDigits: 0
+                  }).format(value),
+                  "Total"
+                ];
+              }}
             />
+
+            <XAxis
+              dataKey="name"
+              stroke="rgba(255,255,255,0.3)"
+              fontSize={10}
+              tickLine={false}
+              axisLine={false}
+              dy={10}
+            />
+
+            <YAxis
+              stroke="rgba(255,255,255,0.3)"
+              fontSize={10}
+              tickLine={false}
+              axisLine={false}
+              width={55}
+              domain={[0, 50000000]}
+              tickFormatter={(value: number) => {
+                if (value === 0) return "Rp0";
+                return `Rp${value / 1000000}jt`;
+              }}
+            />
+
             <Area
               type="monotone"
               dataKey="total"
@@ -57,26 +95,12 @@ export function RevenueChart() {
               strokeWidth={3}
               fillOpacity={1}
               fill="url(#colorTotal)"
-            />
-            <XAxis
-              dataKey="name"
-              stroke="rgba(255,255,255,0.2)"
-              fontSize={10}
-              tickLine={false}
-              axisLine={false}
-            />
-            <YAxis
-              stroke="rgba(255,255,255,0.2)"
-              fontSize={10}
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(value) => `Rp${value / 1000000}jt`}
+              animationDuration={1500}
             />
           </AreaChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Decorative Glow Background */}
       <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-[#D4AF37]/5 blur-[100px] rounded-full opacity-50" />
     </div>
   )
