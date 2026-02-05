@@ -4,6 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { HeaderSection } from "@/components/dashboard/header-section";
 import { StatsGrid } from "@/components/dashboard/stats-grid";
+import { RevenueChart } from "@/components/dashboard/revenue-chart"
 import { prisma } from "@/lib/prisma";
 
 export default async function DashboardPage() {
@@ -35,15 +36,24 @@ export default async function DashboardPage() {
         overdueCount={overdueCount}
       />
 
-      {/* Grid untuk Chart & Activity (Next Step) */}
+      {/* Grid untuk Chart & Activity */}
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 aspect-video bg-white/2 border border-white/5 rounded-[2rem] flex items-center justify-center">
-          <p className="text-white/20 font-bold tracking-widest uppercase text-xs">Revenue Analytics Chart</p>
+        {/* CHART: Ambil 2 kolom di desktop */}
+        <div className="lg:col-span-2">
+          <RevenueChart />
         </div>
-        <div className="bg-white/2 border border-white/5 rounded-[2rem] flex items-center justify-center">
-          <p className="text-white/20 font-bold tracking-widest uppercase text-xs">Recent Activity</p>
+
+        {/* RECENT ACTIVITY: Ambil 1 kolom */}
+        <div className="bg-white/2 border border-white/5 rounded-[2rem] p-6">
+          <h3 className="text-lg font-black tracking-tight text-white mb-6">Aktivitas Terbaru</h3>
+          {/* Kita akan isi di step berikutnya */}
+          <div className="space-y-4">
+            <p className="text-white/20 text-xs font-bold uppercase tracking-widest text-center py-10">
+              Processing feeds...
+            </p>
+          </div>
         </div>
       </div>
     </div>
-  );
+  )
 }
