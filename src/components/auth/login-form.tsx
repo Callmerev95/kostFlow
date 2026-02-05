@@ -2,6 +2,10 @@
 
 import * as React from "react"
 import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { loginSchema } from "@/lib/zod"
+import * as z from "zod"
 import { signIn } from "@/actions/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,27 +13,33 @@ import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { Loader2, LogIn, Eye, EyeOff } from "lucide-react"
 
-type SignInResponse = {
-  error?: string;
-  success?: boolean;
-} | void;
+type LoginInput = z.infer<typeof loginSchema>
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false) // State untuk intip password
+  const [showPassword, setShowPassword] = useState(false)
 
-  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+  })
+
+  async function onSubmit(data: LoginInput) {
     setIsLoading(true)
-
-    const formData = new FormData(event.currentTarget)
+    const formData = new FormData()
+    Object.entries(data).forEach(([key, value]) => formData.append(key, value))
 
     try {
-      const result = await signIn(formData) as SignInResponse;
-      if (result && result.error) {
+      const response = await signIn(formData)
+      const result = response as { error?: string } | undefined
+
+      if (result?.error) {
         toast.error(result.error)
       } else {
-        toast.success("Akses diberikan. Selamat datang kembali!")
+        toast.success("Akses diberikan. Selamat datang di KostFlow!")
       }
     } catch {
       toast.error("Terjadi masalah pada koneksi server.")
@@ -40,64 +50,49 @@ export function LoginForm() {
 
   return (
     <div className="grid gap-6">
-      <form onSubmit={onSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <Label className="text-slate-700 font-medium" htmlFor="email">
-              Alamat Email
-            </Label>
+            <Label htmlFor="email">Alamat Email</Label>
             <Input
+              {...register("email")}
               id="email"
-              name="email"
               placeholder="nama@email.com"
               type="email"
-              disabled={isLoading}
-              required
-              className="h-11 focus-visible:ring-[#D4AF37] border-slate-200"
+              className={`h-11 focus-visible:ring-[#D4AF37] ${errors.email ? "border-red-500" : ""}`}
             />
+            {errors.email && <p className="text-xs text-red-500 font-medium">{errors.email.message}</p>}
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
-              <Label className="text-slate-700 font-medium" htmlFor="password">
-                Password
-              </Label>
+              <Label htmlFor="password">Password</Label>
               <a href="#" className="text-xs font-bold text-[#D4AF37] hover:text-[#C5A028]">
                 Lupa password?
               </a>
             </div>
-            {/* Wrapper untuk input password dan button eye */}
             <div className="relative">
               <Input
+                {...register("password")}
                 id="password"
-                name="password"
                 type={showPassword ? "text" : "password"}
-                disabled={isLoading}
-                required
-                className="h-11 pr-10 focus-visible:ring-[#D4AF37] border-slate-200"
+                className={`h-11 pr-10 focus-visible:ring-[#D4AF37] ${errors.password ? "border-red-500" : ""}`}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#D4AF37] transition-colors"
-                tabIndex={-1} // Agar tidak mengganggu alur tombol Tab
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#D4AF37]"
+                tabIndex={-1}
               >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
+            {errors.password && <p className="text-xs text-red-500 font-medium">{errors.password.message}</p>}
           </div>
           <Button
             disabled={isLoading}
             className="h-12 bg-black hover:bg-slate-900 text-[#D4AF37] font-bold shadow-xl shadow-black/10 transition-all active:scale-[0.98]"
           >
-            {isLoading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <LogIn className="mr-2 h-4 w-4 text-[#D4AF37]" />
-            )}
+            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
             Masuk ke Portal Eksklusif
           </Button>
         </div>
