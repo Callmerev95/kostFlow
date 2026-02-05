@@ -7,6 +7,17 @@ interface StatsGridProps {
   overdueCount: number;
 }
 
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  icon: React.ReactNode;
+  description: string;
+  trend?: string;
+  progress?: number;
+  isWarning?: boolean;
+  isCritical?: boolean;
+}
+
 const formatIDR = (amount: number) => {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
@@ -52,7 +63,7 @@ export function StatsGrid({ stats, income, overdueCount }: StatsGridProps) {
   );
 }
 
-function StatCard({ title, value, icon, description, trend, progress, isWarning, isCritical }: any) {
+function StatCard({ title, value, icon, description, trend, progress, isWarning, isCritical }: StatCardProps) {
   return (
     <div className={cn(
       "relative p-6 rounded-[2rem] border transition-all duration-300 group overflow-hidden bg-white/3 border-white/5 hover:border-[#D4AF37]/30",
