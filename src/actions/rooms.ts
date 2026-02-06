@@ -20,18 +20,24 @@ export async function getRooms(userId: string) {
 export async function createRoom(formData: FormData, userId: string) {
   const roomNumber = formData.get("roomNumber") as string;
   const price = parseInt(formData.get("price") as string);
+  try {
+    await prisma.room.create({
+      data: {
+        roomNumber,
+        price,
+        userId,
+        status: "AVAILABLE",
+      },
+    });
 
-  await prisma.room.create({
-    data: {
-      roomNumber,
-      price,
-      userId,
-      status: "AVAILABLE",
-    },
-  });
-
-  // Membersihkan cache agar data terbaru muncul di dashboard
-  revalidatePath("/dashboard/rooms");
+    // Membersihkan cache agar data terbaru muncul di dashboard
+    revalidatePath("/dashboard/rooms");
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    // WAJIB: Kembalikan error agar client bisa menangkapnya
+    return { error: "Gagal membuat kamar baru" };
+  }
 }
 
 /**
