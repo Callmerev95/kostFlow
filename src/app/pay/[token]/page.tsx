@@ -1,17 +1,11 @@
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { UploadProofModal } from "@/components/shared/UploadProofModal"
 import { format } from "date-fns"
 import { id } from "date-fns/locale"
 import { PaymentInstructions } from "@/components/shared/PaymentInstructions"
 import Image from "next/image"
-
-/**
- * Halaman Publik untuk Penyewa
- * Tidak memerlukan autentikasi
- */
+import { ShieldCheck, Receipt, User, Home, Calendar, Wallet } from "lucide-react"
 
 export default async function PublicPaymentPage(props: { params: Promise<{ token: string }> }) {
   const { token } = await props.params;
@@ -33,7 +27,6 @@ export default async function PublicPaymentPage(props: { params: Promise<{ token
   const { tenant } = transaction;
   const owner = tenant.user;
 
-  // Format detail tanggal contoh: 5 Februari 2026
   const detailDate = format(new Date(transaction.year, transaction.month - 1, 5), "d MMMM yyyy", { locale: id });
 
   const formatIDR = (amount: number) => {
@@ -45,67 +38,106 @@ export default async function PublicPaymentPage(props: { params: Promise<{ token
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-lg border-none">
-        <CardHeader className="text-center border-b bg-white rounded-t-xl py-8">
-          <Badge className="mb-2" variant="outline">{owner.kostName}</Badge>
-          <CardTitle className="text-2xl font-black tracking-tight uppercase">Tagihan Pembayaran</CardTitle>
-          {/* 1. Informasi Atas Nama & Kamar */}
-          <p className="text-sm font-medium text-slate-500 mt-2">
-            <span className="text-blue-600 font-bold uppercase">{tenant.name}</span>
-            <span className="mx-2">|</span>
-            Kamar: <span className="font-bold text-slate-800">{tenant.room.roomNumber}</span>
-          </p>
-        </CardHeader>
+    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4 selection:bg-[#D4AF37]/30">
+      {/* Background Decorative Element */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#D4AF37]/5 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/5 blur-[120px] rounded-full" />
+      </div>
 
-        <CardContent className="p-6 space-y-6">
-          {/* 2. Detail Transaksi & Periode Detail */}
-          <div className="flex justify-between items-start pb-4 border-b border-dashed">
-            <div>
-              <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Periode Tagihan</p>
-              <p className="font-semibold text-slate-700">{detailDate}</p>
+      <div className="w-full max-w-md relative animate-in fade-in zoom-in duration-700">
+        {/* Main Card Container */}
+        <div className="bg-[#0A0A0A] border border-white/5 rounded-[3rem] overflow-hidden shadow-2xl shadow-black">
+
+          {/* Header Section */}
+          <div className="bg-white/2 border-b border-white/5 p-8 text-center relative">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/20 text-[#D4AF37] text-[10px] font-black uppercase tracking-widest mb-6">
+              <ShieldCheck size={12} strokeWidth={3} /> Official Invoice
             </div>
-            <div className="text-right">
-              <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Total Bayar</p>
-              <p className="text-2xl font-black text-blue-600">{formatIDR(transaction.amount)}</p>
+
+            <h1 className="text-white font-black text-3xl tracking-tighter uppercase leading-none">
+              {owner.kostName || "Kost-Pulse"}
+            </h1>
+
+            <div className="flex items-center justify-center gap-3 mt-4">
+              <div className="flex items-center gap-1.5 py-1 px-3 rounded-lg bg-white/5 border border-white/5 text-white/60 text-[11px] font-bold">
+                <User size={12} className="text-[#D4AF37]" /> {tenant.name}
+              </div>
+              <div className="flex items-center gap-1.5 py-1 px-3 rounded-lg bg-white/5 border border-white/5 text-white/60 text-[11px] font-bold">
+                <Home size={12} className="text-[#D4AF37]" /> Kamar {tenant.room.roomNumber}
+              </div>
             </div>
           </div>
 
-          {/* 3. Instruksi Pembayaran Interaktif (Tabs) */}
-          {!transaction.paymentProof && (
-            <PaymentInstructions user={owner} />
-          )}
+          <div className="p-8 space-y-8">
+            {/* Detail Transaksi Card */}
+            <div className="bg-white/5 rounded-[2rem] p-6 border border-white/5 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Receipt size={40} className="text-white" />
+              </div>
 
-          {/* 4. Upload Section */}
-          <div className="pt-2">
-            {transaction.paymentProof ? (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 text-green-600 justify-center bg-green-50 py-3 rounded-xl border border-green-100">
-                  <span className="text-sm font-bold uppercase tracking-widest italic">Pembayaran Sedang Diverifikasi</span>
+              <div className="grid grid-cols-2 gap-4 relative z-10">
+                <div className="space-y-1">
+                  <p className="text-[10px] text-white/20 uppercase font-black tracking-widest flex items-center gap-1.5">
+                    <Calendar size={10} /> Periode
+                  </p>
+                  <p className="text-white font-bold text-sm tracking-tight">{detailDate}</p>
                 </div>
-                <div className="relative aspect-3/4 w-full rounded-xl border overflow-hidden shadow-inner bg-slate-100">
-                  <Image
-                    src={transaction.paymentProof}
-                    alt="Bukti Transfer"
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
+                <div className="text-right space-y-1">
+                  <p className="text-[10px] text-white/20 uppercase font-black tracking-widest flex items-center gap-1.5 justify-end">
+                    <Wallet size={10} /> Total Bayar
+                  </p>
+                  <p className="text-[#D4AF37] text-xl font-black tracking-tighter">{formatIDR(transaction.amount)}</p>
                 </div>
               </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="text-center">
-                  <p className="text-[11px] text-slate-400 mb-4 bg-slate-100 py-2 rounded-lg">
-                    Mohon pastikan nominal transfer sesuai sebelum mengunggah bukti.
-                  </p>
-                  <UploadProofModal transactionId={transaction.id} />
-                </div>
+            </div>
+
+            {/* Instruksi Pembayaran (Tabs) */}
+            {!transaction.paymentProof && (
+              <div className="animate-in slide-in-from-bottom duration-500 delay-150">
+                <PaymentInstructions user={owner} />
               </div>
             )}
+
+            {/* Status & Upload Section */}
+            <div className="pt-2">
+              {transaction.paymentProof ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 text-green-400 justify-center bg-green-500/5 py-4 rounded-2xl border border-green-500/10">
+                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Sedang Diverifikasi</span>
+                  </div>
+
+                  <div className="relative aspect-3/4 w-full rounded-[2.5rem] border border-white/5 overflow-hidden shadow-inner bg-white/5 group">
+                    <Image
+                      src={transaction.paymentProof}
+                      alt="Bukti Transfer"
+                      fill
+                      className="object-cover transition-transform duration-700 group-hover:scale-110"
+                      unoptimized
+                    />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent opacity-60" />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2 text-white/20 justify-center italic">
+                    <div className="h-px w-8 bg-white/5" />
+                    <p className="text-[10px] font-medium tracking-tight uppercase">Upload Bukti Transfer</p>
+                    <div className="h-px w-8 bg-white/5" />
+                  </div>
+                  <UploadProofModal transactionId={transaction.id} />
+                </div>
+              )}
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Footer Info */}
+        <p className="mt-8 text-center text-white/20 text-[10px] font-bold uppercase tracking-[0.3em] flex items-center justify-center gap-2">
+          <ShieldCheck size={12} /> Powered by KostFlow Security
+        </p>
+      </div>
     </div>
   )
 }
