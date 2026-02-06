@@ -50,7 +50,7 @@ export default async function DashboardLayout({
 
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
 
-        {/* FIX: Tambahkan 'hidden md:flex' agar header hilang di mobile */}
+        {/* Top Header */}
         <header className="hidden md:flex h-20 border-b border-white/5 items-center justify-between px-8 bg-[#0F0F0F]/80 backdrop-blur-md shrink-0 z-40">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D4AF37] mb-0.5">
