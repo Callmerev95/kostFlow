@@ -49,8 +49,9 @@ export default async function DashboardLayout({
       </div>
 
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-        {/* Top Header - shrink-0 agar tinggi 80px tetap konsisten */}
-        <header className="h-20 border-b border-white/5 flex items-center justify-between px-8 bg-[#0F0F0F]/80 backdrop-blur-md shrink-0 z-40">
+
+        {/* FIX: Tambahkan 'hidden md:flex' agar header hilang di mobile */}
+        <header className="hidden md:flex h-20 border-b border-white/5 items-center justify-between px-8 bg-[#0F0F0F]/80 backdrop-blur-md shrink-0 z-40">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D4AF37] mb-0.5">
               Command Center
@@ -67,14 +68,13 @@ export default async function DashboardLayout({
           </div>
         </header>
 
-        {/* MAIN CONTAINER: Kunci scroll internal ada di flex-1 dan overflow-hidden */}
+        {/* MAIN CONTAINER */}
         <main className="flex-1 overflow-hidden bg-[#0F0F0F] relative flex flex-col">
           <div className="flex-1 min-h-0 p-4 md:p-8 max-w-7xl mx-auto w-full flex flex-col">
             {children}
           </div>
         </main>
 
-        {/* Bottom Navigation untuk Mobile */}
         <BottomNav />
       </div>
     </div>
