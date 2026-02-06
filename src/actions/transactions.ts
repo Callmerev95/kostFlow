@@ -10,16 +10,29 @@ import { createClient } from "@/lib/supabase-server";
  */
 export async function confirmPayment(transactionId: string) {
   try {
+    // Ambil token dulu untuk revalidate path publik penyewa
+    const transaction = await prisma.transaction.findUnique({
+      where: { id: transactionId },
+      select: { token: true },
+    });
+
+    if (!transaction) return { error: "Transaksi tidak ditemukan" };
+
     await prisma.transaction.update({
       where: { id: transactionId },
       data: {
         status: TransactionStatus.PAID,
         paidAt: new Date(),
+        updatedAt: new Date(), // Sesuai instruksi penambahan field
       },
     });
 
+    // Refresh Dashboard Owner
     revalidatePath("/dashboard/transactions");
-    revalidatePath("/dashboard"); // Agar overview angka ikut update (kalau ada card pendapatan)
+    revalidatePath("/dashboard");
+
+    // REFRESH Halaman Publik Penyewa (Penting!)
+    revalidatePath(`/pay/${transaction.token}`, "page");
 
     return { success: true };
   } catch (error) {
@@ -41,10 +54,9 @@ export async function uploadPaymentProof(
   const supabase = await createClient();
 
   const fileExt = file.name.split(".").pop();
-  const fileName = `${transactionId}-${Date.now()}.${fileExt}`; // Pakai Date.now() lebih aman dari tabrakan nama
+  const fileName = `${transactionId}-${Date.now()}.${fileExt}`;
   const filePath = `proofs/${fileName}`;
 
-  // Perbaikan: Hapus 'uploadData' karena tidak digunakan, cukup ambil 'error'
   const { error: uploadError } = await supabase.storage
     .from("payment-proofs")
     .upload(filePath, file);
@@ -58,13 +70,17 @@ export async function uploadPaymentProof(
     data: { publicUrl },
   } = supabase.storage.from("payment-proofs").getPublicUrl(filePath);
 
-  await prisma.transaction.update({
+  const updatedTransaction = await prisma.transaction.update({
     where: { id: transactionId },
     data: {
       paymentProof: publicUrl,
+      updatedAt: new Date(),
     },
   });
 
+  // Revalidate Dashboard & Halaman Publik
   revalidatePath("/dashboard/transactions");
+  revalidatePath(`/pay/${updatedTransaction.token}`, "page");
+
   return { success: true };
 }

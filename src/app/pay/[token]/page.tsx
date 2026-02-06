@@ -5,11 +5,12 @@ import { format } from "date-fns"
 import { id } from "date-fns/locale"
 import { PaymentInstructions } from "@/components/shared/PaymentInstructions"
 import Image from "next/image"
-import { ShieldCheck, User, Home, Calendar, Wallet } from "lucide-react"
+import { ShieldCheck, User, Home, Calendar, Wallet, Clock, CheckCircle2 } from "lucide-react"
 
 export default async function PublicPaymentPage(props: { params: Promise<{ token: string }> }) {
   const { token } = await props.params;
 
+  // 1. Fetch data transaksi dengan relasi lengkap
   const transaction = await prisma.transaction.findUnique({
     where: { token },
     include: {
@@ -27,6 +28,7 @@ export default async function PublicPaymentPage(props: { params: Promise<{ token
   const { tenant } = transaction;
   const owner = tenant.user;
 
+  // 2. Format Tanggal & Mata Uang
   const detailDate = format(new Date(transaction.year, transaction.month - 1, 5), "d MMMM yyyy", { locale: id });
 
   const formatIDR = (amount: number) => {
@@ -37,8 +39,12 @@ export default async function PublicPaymentPage(props: { params: Promise<{ token
     }).format(amount)
   }
 
+  // 3. Logika Status Dinamis
+  const isPaid = transaction.status === "PAID";
+  const isVerifying = !isPaid && !!transaction.paymentProof;
+
   return (
-    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4 selection:bg-[#D4AF37]/30">
+    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4 selection:bg-[#D4AF37]/30 font-sans">
       {/* Background Decorative Element */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#D4AF37]/5 blur-[120px] rounded-full" />
@@ -72,9 +78,6 @@ export default async function PublicPaymentPage(props: { params: Promise<{ token
           <div className="p-8 space-y-8">
             {/* Detail Transaksi Card */}
             <div className="bg-white/5 rounded-[2rem] p-6 border border-white/5 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              </div>
-
               <div className="grid grid-cols-2 gap-4 relative z-10">
                 <div className="space-y-1">
                   <p className="text-[10px] text-white/20 uppercase font-black tracking-widest flex items-center gap-1.5">
@@ -91,40 +94,75 @@ export default async function PublicPaymentPage(props: { params: Promise<{ token
               </div>
             </div>
 
-            {/* Instruksi Pembayaran (Tabs) */}
-            {!transaction.paymentProof && (
-              <div className="animate-in slide-in-from-bottom duration-500 delay-150">
-                <PaymentInstructions user={owner} />
-              </div>
-            )}
+            {/* Content Switcher Based on Status */}
+            <div className="space-y-8">
+              {isPaid ? (
+                /* ==========================================
+                   CASE 1: PEMBAYARAN SUDAH LUNAS (PAID)
+                   ========================================== */
+                <div className="space-y-6 animate-in zoom-in duration-500">
+                  <div className="flex flex-col items-center gap-4 text-green-400 justify-center bg-green-500/5 py-10 rounded-[2.5rem] border border-green-500/10 shadow-[0_0_40px_rgba(34,197,94,0.05)]">
+                    <div className="h-16 w-16 rounded-full bg-green-500 flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.3)]">
+                      <CheckCircle2 size={32} className="text-black" strokeWidth={3} />
+                    </div>
+                    <div className="text-center px-6">
+                      <p className="text-base font-black uppercase tracking-[0.2em]">Pembayaran Berhasil</p>
+                      <p className="text-[10px] text-green-500/50 font-medium mt-2 leading-relaxed">
+                        Terima kasih, pembayaran Anda telah diverifikasi oleh Owner.
+                      </p>
+                    </div>
+                  </div>
 
-            {/* Status & Upload Section */}
-            <div className="pt-2">
-              {transaction.paymentProof ? (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 text-green-400 justify-center bg-green-500/5 py-4 rounded-2xl border border-green-500/10">
-                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Pembayaran Berhasil</span>
+                  {/* Bukti Bayar Kecil (Opsional) */}
+                  <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                    <p className="text-[10px] text-white/20 font-black uppercase tracking-widest">Waktu Bayar</p>
+                    <p className="text-[10px] text-white/60 font-bold">
+                      {transaction.paidAt ? format(new Date(transaction.paidAt), "d MMM yyyy, HH:mm", { locale: id }) : "-"}
+                    </p>
+                  </div>
+                </div>
+              ) : isVerifying ? (
+                /* ==========================================
+                   CASE 2: SEDANG DIVERIFIKASI (UPLOADED)
+                   ========================================== */
+                <div className="space-y-6 animate-in fade-in duration-500">
+                  <div className="flex items-center gap-3 text-[#D4AF37] justify-center bg-[#D4AF37]/5 py-4 rounded-2xl border border-[#D4AF37]/10">
+                    <Clock size={14} className="animate-spin-slow" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Sedang Diverifikasi</span>
                   </div>
 
                   <div className="relative aspect-3/4 w-full rounded-[2.5rem] border border-white/5 overflow-hidden shadow-inner bg-white/5 group">
                     <Image
-                      src={transaction.paymentProof}
+                      src={transaction.paymentProof!}
                       alt="Bukti Transfer"
                       fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-110"
+                      className="object-cover opacity-40 grayscale group-hover:opacity-60 transition-all duration-700"
                       unoptimized
                     />
-                    <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent opacity-60" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <p className="bg-black/60 backdrop-blur-md px-5 py-2.5 rounded-full text-[9px] font-black text-white/90 uppercase tracking-[0.2em] border border-white/10">Bukti Terkirim</p>
+                    </div>
                   </div>
+                  <p className="text-center text-[10px] text-white/30 italic">
+                    Mohon tunggu, Owner akan segera memeriksa bukti transfer Anda.
+                  </p>
                 </div>
               ) : (
-                <div className="space-y-6">
-                  <div className="flex items-center gap-2 text-white/20 justify-center italic">
-                    <div className="h-px w-8 bg-white/5" />
-                    <p className="text-[10px] font-medium tracking-tight uppercase">Upload Bukti Transfer</p>
-                    <div className="h-px w-8 bg-white/5" />
+                /* ==========================================
+                   CASE 3: BELUM BAYAR (PENDING)
+                   ========================================== */
+                <div className="space-y-8 animate-in slide-in-from-bottom duration-500">
+                  <PaymentInstructions user={owner} />
+
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-white/5"></div>
+                    </div>
+                    <div className="relative flex justify-center text-[10px] font-black uppercase tracking-widest">
+                      <span className="bg-[#0A0A0A] px-4 text-white/20 italic">Konfirmasi</span>
+                    </div>
                   </div>
+
                   <UploadProofModal transactionId={transaction.id} />
                 </div>
               )}
@@ -134,7 +172,7 @@ export default async function PublicPaymentPage(props: { params: Promise<{ token
 
         {/* Footer Info */}
         <p className="mt-8 text-center text-white/20 text-[10px] font-bold uppercase tracking-[0.3em] flex items-center justify-center gap-2">
-          <ShieldCheck size={12} /> Powered by KostFlow Security
+          <ShieldCheck size={12} /> Powered by KostPulse Security
         </p>
       </div>
     </div>
