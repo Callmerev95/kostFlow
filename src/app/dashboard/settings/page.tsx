@@ -33,7 +33,7 @@ export default async function SettingsPage() {
   if (!user) return null
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700 pb-10 max-w-2xl mx-auto md:mx-0">
+    <div className="space-y-8 animate-in fade-in duration-700  max-w-2xl mx-auto md:mx-0">
       {/* Header Section */}
       <div>
         <h1 className="text-3xl font-black tracking-tighter text-white">

@@ -24,7 +24,7 @@ import {
 import { useState, useRef } from "react"
 import { Room } from "@prisma/client"
 import { toast } from "sonner"
-import { Loader2 } from "lucide-react" // Tambahkan loader
+import { Loader2, User, Phone } from "lucide-react"
 
 // Interface untuk type safety
 interface ActionResponse {
@@ -98,11 +98,16 @@ export function CheckInForm({ room }: { room: Room }) {
           <form ref={formRef} onSubmit={handlePreSubmit} className="space-y-5 pt-4">
             {/* ... Input fields (Tambahkan disabled={isLoading}) ... */}
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-xs font-bold uppercase tracking-widest text-white/60 pl-1">Nama Lengkap</Label>
+
+              <Label htmlFor="name" className="text-xs font-bold uppercase tracking-widest text-white/60 pl-1">
+                <User size={10} />Nama Lengkap
+              </Label>
+
               <Input id="name" name="name" disabled={isLoading} placeholder="Nama sesuai identitas" className="bg-white/5 border-white/10 rounded-xl focus:border-[#D4AF37]/50 h-12" required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phoneNumber" className="text-xs font-bold uppercase tracking-widest text-white/60 pl-1">Nomor WhatsApp</Label>
+              <Label htmlFor="phoneNumber" className="text-xs font-bold uppercase tracking-widest text-white/60 pl-1">
+                <Phone size={10} />Nomor WhatsApp</Label>
               <Input id="phoneNumber" name="phoneNumber" disabled={isLoading} placeholder="081234567xxx" className="bg-white/5 border-white/10 rounded-xl focus:border-[#D4AF37]/50 h-12" required />
             </div>
             <Button

@@ -124,6 +124,8 @@
   }
 }
 
+@plugin 'tailwind-scrollbar';
+
 /* Custom Scrollbar for Luxury Dark Theme */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
@@ -134,10 +136,12 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #222;
+  /*background: #222;*/
+  background: rgba(212, 175, 55, 0.1);
   border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #d4af37; /* Scrollbar jadi Gold pas di-hover */
+  /*background: #d4af37; /* Scrollbar jadi Gold pas di-hover */
+  background: rgba(212, 175, 55, 0.3);
 }

@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Plus, Loader2 } from "lucide-react" // Tambah Loader2
+import { Plus, Loader2, Tag, HousePlus, Save } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -69,7 +69,9 @@ export function AddRoomForm({ userId }: { userId: string }) {
         </DialogHeader>
         <form action={handleSubmit} className="space-y-5 pt-4">
           <div className="space-y-2">
-            <Label htmlFor="roomNumber" className="text-xs font-bold uppercase tracking-widest text-white/60 pl-1">Nomor Kamar</Label>
+            <Label htmlFor="roomNumber" className="text-xs font-bold uppercase tracking-widest text-white/60 pl-1">
+              <HousePlus color="#D4AF37" size={12} />Nomor Kamar
+            </Label>
             <Input
               id="roomNumber"
               name="roomNumber"
@@ -80,7 +82,9 @@ export function AddRoomForm({ userId }: { userId: string }) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="price" className="text-xs font-bold uppercase tracking-widest text-white/60 pl-1">Harga Sewa / Bulan</Label>
+            <Label htmlFor="price" className="text-xs font-bold uppercase tracking-widest text-white/60 pl-1">
+              <Tag color="#D4AF37" size={12} />Harga Sewa / Bulan
+            </Label>
             <Input
               id="price"
               name="price"
@@ -96,12 +100,8 @@ export function AddRoomForm({ userId }: { userId: string }) {
             disabled={isLoading}
             className="w-full bg-[#D4AF37] hover:bg-[#F9E498] text-black font-black rounded-xl py-6 mt-2 transition-all shadow-[0_10px_20px_rgba(212,175,55,0.2)] flex items-center justify-center gap-2 disabled:opacity-70"
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                Sedang Menyimpan...
-              </>
-            ) : "Simpan Unit"}
+            {isLoading ? <Loader2 className="animate-spin h-4 w-4" /> : <Save size={18} />}
+            SIMPAN PERUBAHAN
           </Button>
         </form>
       </DialogContent>

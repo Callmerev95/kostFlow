@@ -27,7 +27,7 @@ export default async function TenantsPage() {
   const tenants = await getTenants(user.id)
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700 pb-10">
+    <div className="space-y-8 animate-in fade-in duration-700">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -70,7 +70,12 @@ export default async function TenantsPage() {
                 </TableCell>
                 <TableCell className="text-right pr-8">
                   <div className="flex justify-end">
-                    <TenantActions tenantId={tenant.id} roomId={tenant.roomId} tenantName={tenant.name} />
+                    <TenantActions
+                      tenantId={tenant.id}
+                      roomId={tenant.roomId}
+                      tenantName={tenant.name}
+                      phoneNumber={tenant.phoneNumber}
+                    />
                   </div>
                 </TableCell>
               </TableRow>
@@ -116,6 +121,7 @@ export default async function TenantsPage() {
                 tenantId={tenant.id}
                 roomId={tenant.roomId}
                 tenantName={tenant.name}
+                phoneNumber={tenant.phoneNumber}
                 isMobile
               />
             </div>

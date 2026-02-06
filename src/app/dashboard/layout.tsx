@@ -5,10 +5,6 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 
-/**
- * Server-Side Dashboard Layout
- * Menggunakan standar Async Component untuk fetching data sebelum render.
- */
 export default async function DashboardLayout({
   children,
 }: {
@@ -30,12 +26,10 @@ export default async function DashboardLayout({
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Proteksi Route: Jika tidak ada session, langsung redirect
   if (!user) {
     redirect("/login");
   }
 
-  // Fetch data profile secara paralel dari Prisma
   const profile = await prisma.user.findUnique({
     where: { id: user.id },
     select: {
@@ -49,14 +43,14 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#0F0F0F] text-white">
-      {/* Sidebar Desktop (Hidden di Mobile) */}
+      {/* Sidebar Desktop */}
       <div className="hidden lg:block">
         <Sidebar userName={userName} kostName={kostName} />
       </div>
 
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Top Header - THE FINISHING TOUCH */}
-        <header className="h-20 border-b border-white/5 flex items-center justify-between px-8 bg-[#0F0F0F]/80 backdrop-blur-md sticky top-0 z-40">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        {/* Top Header - shrink-0 agar tinggi 80px tetap konsisten */}
+        <header className="h-20 border-b border-white/5 flex items-center justify-between px-8 bg-[#0F0F0F]/80 backdrop-blur-md shrink-0 z-40">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D4AF37] mb-0.5">
               Command Center
@@ -73,11 +67,13 @@ export default async function DashboardLayout({
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar bg-[#0F0F0F] pb-28 lg:pb-2">
-          <div className="p-4 md:p-8 max-w-400 mx-auto w-full">
+        {/* MAIN CONTAINER: Kunci scroll internal ada di flex-1 dan overflow-hidden */}
+        <main className="flex-1 overflow-hidden bg-[#0F0F0F] relative flex flex-col">
+          <div className="flex-1 min-h-0 p-4 md:p-8 max-w-7xl mx-auto w-full flex flex-col">
             {children}
           </div>
         </main>
+
         {/* Bottom Navigation untuk Mobile */}
         <BottomNav />
       </div>
