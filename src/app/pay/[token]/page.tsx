@@ -5,7 +5,7 @@ import { format } from "date-fns"
 import { id } from "date-fns/locale"
 import { PaymentInstructions } from "@/components/shared/PaymentInstructions"
 import Image from "next/image"
-import { ShieldCheck, Receipt, User, Home, Calendar, Wallet } from "lucide-react"
+import { ShieldCheck, User, Home, Calendar, Wallet } from "lucide-react"
 
 export default async function PublicPaymentPage(props: { params: Promise<{ token: string }> }) {
   const { token } = await props.params;
@@ -73,7 +73,6 @@ export default async function PublicPaymentPage(props: { params: Promise<{ token
             {/* Detail Transaksi Card */}
             <div className="bg-white/5 rounded-[2rem] p-6 border border-white/5 relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Receipt size={40} className="text-white" />
               </div>
 
               <div className="grid grid-cols-2 gap-4 relative z-10">
@@ -105,7 +104,7 @@ export default async function PublicPaymentPage(props: { params: Promise<{ token
                 <div className="space-y-4">
                   <div className="flex items-center gap-3 text-green-400 justify-center bg-green-500/5 py-4 rounded-2xl border border-green-500/10">
                     <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Sedang Diverifikasi</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Pembayaran Berhasil</span>
                   </div>
 
                   <div className="relative aspect-3/4 w-full rounded-[2.5rem] border border-white/5 overflow-hidden shadow-inner bg-white/5 group">
