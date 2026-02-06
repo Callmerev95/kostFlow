@@ -31,7 +31,7 @@ export default async function PublicPaymentPage(props: { params: Promise<{ token
   const owner = tenant.user;
 
   // 2. Format Tanggal & Mata Uang
-  const detailDate = format(new Date(transaction.year, transaction.month - 1, 5), "d MMMM yyyy", { locale: id });
+  const detailDate = format(new Date(transaction.year, transaction.month - 1), "MMMM yyyy", { locale: id }); // Logic menyesuaikan kebijakan Owner
 
   const formatIDR = (amount: number) => {
     return new Intl.NumberFormat("id-ID", {
