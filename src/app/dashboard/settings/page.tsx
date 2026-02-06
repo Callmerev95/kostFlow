@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { SettingsForm } from "@/components/shared/settings/SettingsForm"
-import { ShieldCheck, CreditCard } from "lucide-react"
+import { CreditCard } from "lucide-react"
 
 export default async function SettingsPage() {
   const cookieStore = await cookies()
@@ -33,9 +33,10 @@ export default async function SettingsPage() {
   if (!user) return null
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700  max-w-2xl mx-auto md:mx-0">
-      {/* Header Section */}
-      <div>
+    <div className="flex flex-col h-full min-h-0 animate-in fade-in duration-700 overflow-hidden">
+
+      {/* Header Section - shrink-0 agar statis di atas */}
+      <div className="mb-8 shrink-0">
         <h1 className="text-3xl font-black tracking-tighter text-white">
           Sistem <span className="text-[#D4AF37]">Pengaturan</span>
         </h1>
@@ -44,25 +45,27 @@ export default async function SettingsPage() {
         </p>
       </div>
 
-      <div className="bg-white/2 border border-white/5 rounded-[2.5rem] p-8 backdrop-blur-sm relative overflow-hidden shadow-2xl">
-        {/* Subtle Decorative Glow */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-[#D4AF37]/5 blur-3xl rounded-full" />
+      {/* Scrollable Form Area */}
+      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pb-25">
+        <div className="max-w-2xl mx-auto md:mx-0">
+          <div className="bg-white/2 border border-white/5 rounded-[2.5rem] p-8 backdrop-blur-sm relative overflow-hidden shadow-2xl mb-8">
+            {/* Subtle Decorative Glow */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#D4AF37]/5 blur-3xl rounded-full pointer-events-none" />
 
-        <div className="flex items-center gap-3 mb-8 pb-4 border-b border-white/5">
-          <div className="h-10 w-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37] border border-[#D4AF37]/20">
-            <CreditCard size={20} />
-          </div>
-          <div>
-            <h2 className="text-white font-bold tracking-tight">Informasi Pembayaran</h2>
-            <p className="text-white/20 text-[10px] uppercase tracking-widest font-bold">Data Invoice Penyewa</p>
+            <div className="flex items-center gap-3 mb-8 pb-4 border-b border-white/5">
+              <div className="h-10 w-10 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37] border border-[#D4AF37]/20">
+                <CreditCard size={20} />
+              </div>
+              <div>
+                <h2 className="text-white font-bold tracking-tight">Informasi Pembayaran</h2>
+                <p className="text-white/20 text-[10px] uppercase tracking-widest font-bold">Data Invoice Penyewa</p>
+              </div>
+            </div>
+
+            {/* Form Settings */}
+            <SettingsForm initialData={user} userId={authUser.id} />
           </div>
         </div>
-
-        <SettingsForm initialData={user} userId={authUser.id} />
-      </div>
-
-      <div className="flex items-center gap-2 justify-center text-white/10 text-[10px] uppercase tracking-[0.3em] font-black">
-        <ShieldCheck size={12} /> Secure Cloud Configuration
       </div>
     </div>
   )
