@@ -11,15 +11,35 @@ export async function updateSettings(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!authUser) return { error: "Unauthorized" };
 
-  //const name = formData.get("name") as string;
-  const bankName = formData.get("bankName") as string;
-  const accountNumber = formData.get("accountNumber") as string;
-  const accountName = formData.get("accountName") as string;
-  const ewalletName = formData.get("ewalletName") as string | null;
-  const ewalletNumber = formData.get("ewalletNumber") as string | null;
-  const qrisImage = formData.get("qrisImage") as string | null;
-
   try {
+    const bankName = formData.get("bankName") as string;
+    const accountNumber = formData.get("accountNumber") as string;
+    const accountName = formData.get("accountName") as string;
+    const ewalletName = formData.get("ewalletName") as string | null;
+    const ewalletNumber = formData.get("ewalletNumber") as string | null;
+    const qrisFile = formData.get("qrisFile") as File;
+
+    let qrisUrl = formData.get("currentQrisUrl") as string | null;
+
+    // Logic Upload ke Supabase Storage jika ada file baru
+    if (qrisFile && qrisFile.size > 0) {
+      const fileExt = qrisFile.name.split(".").pop();
+      const fileName = `${authUser.id}-${Date.now()}.${fileExt}`;
+      const filePath = `qris/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("payment-proofs")
+        .upload(filePath, qrisFile);
+
+      if (uploadError) throw new Error("Gagal mengunggah gambar QRIS.");
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("payment-proofs").getPublicUrl(filePath);
+
+      qrisUrl = publicUrl;
+    }
+
     await prisma.user.update({
       where: { id: authUser.id },
       data: {
@@ -28,17 +48,22 @@ export async function updateSettings(formData: FormData) {
         accountName: accountName || null,
         ewalletName: ewalletName || null,
         ewalletNumber: ewalletNumber || null,
-        qrisImage: qrisImage || null,
+        qrisImage: qrisUrl || null,
+        updatedAt: new Date(), // Pastikan field updatedAt tercatat
       },
     });
 
-    // Beritahu Next.js untuk memperbarui tampilan yang menggunakan data ini
     revalidatePath("/dashboard/settings");
     revalidatePath("/pay/[token]", "page");
 
     return { success: true };
   } catch (error) {
     console.error("FAILED_TO_UPDATE_SETTINGS:", error);
-    return { error: "Gagal memperbarui pengaturan. Silakan coba lagi." };
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "Gagal memperbarui pengaturan. Silakan coba lagi.";
+
+    return { error: errorMessage };
   }
 }

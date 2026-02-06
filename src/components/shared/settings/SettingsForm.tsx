@@ -1,12 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { updateSettings } from "@/actions/user"
-import { Building2, Smartphone, QrCode, Save } from "lucide-react"
+import { Building2, Smartphone, QrCode, Save, UploadCloud, Info } from "lucide-react"
+import Image from "next/image"
 
 interface SettingsFormProps {
   userId: string
@@ -24,14 +25,34 @@ interface SettingsFormProps {
 
 export function SettingsForm({ initialData }: SettingsFormProps) {
   const [loading, setLoading] = useState(false)
+  const [preview, setPreview] = useState<string | null>(initialData.qrisImage)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error("Ukuran file maksimal 2MB")
+        return
+      }
+      const reader = new FileReader()
+      reader.onloadend = () => setPreview(reader.result as string)
+      reader.readAsDataURL(file)
+    }
+  }
 
   async function handleSubmit(formData: FormData) {
     setLoading(true)
-    // Sesuai konsep: Gunakan toast.promise untuk feedback standar industri
+
+    // Kirim URL lama sebagai fallback jika user tidak ganti file
+    if (initialData.qrisImage) {
+      formData.append("currentQrisUrl", initialData.qrisImage)
+    }
+
     const promise = updateSettings(formData)
 
     toast.promise(promise, {
-      loading: "Menyimpan perubahan...",
+      loading: "Menyinkronkan data...",
       success: (res) => {
         if (res?.error) throw new Error(res.error)
         return "Pengaturan berhasil diperbarui!"
@@ -41,7 +62,7 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
     })
   }
 
-  const inputStyles = "bg-white/5 border-white/10 text-white placeholder:text-white/10 rounded-xl focus:border-[#D4AF37]/50 focus:ring-[#D4AF37]/20 transition-all py-6"
+  const inputStyles = "bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl focus:border-[#D4AF37]/50 focus:ring-[#D4AF37]/20 transition-all py-6"
   const labelStyles = "text-white/40 text-[10px] uppercase tracking-widest font-black ml-1"
 
   return (
@@ -88,18 +109,55 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
         </div>
       </div>
 
-      {/* 🖼️ Bagian QRIS */}
+      {/* 🖼️ Bagian QRIS (Direct Upload) */}
       <div className="space-y-4 pt-6 border-t border-white/5">
         <div className="flex items-center gap-2 mb-2">
           <QrCode size={14} className="text-[#D4AF37]" />
           <h3 className="font-bold text-white text-sm tracking-tight">QRIS Payment</h3>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="qrisImage" className={labelStyles}>URL QRIS Image</Label>
-          <Input id="qrisImage" name="qrisImage" defaultValue={initialData.qrisImage || ""} placeholder="https://cloud.com/my-qris.jpg" className={inputStyles} />
-          <p className="text-[9px] text-white/20 italic pl-1">
-            *Pastikan link gambar dapat diakses secara publik.
-          </p>
+
+        <div className="space-y-4">
+          <Label className={labelStyles}>Upload Barcode QRIS</Label>
+
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className="group relative border-2 border-dashed border-white/10 rounded-[2rem] p-8 transition-all hover:border-[#D4AF37]/50 hover:bg-[#D4AF37]/5 cursor-pointer overflow-hidden flex flex-col items-center justify-center gap-3 text-center"
+          >
+            {preview ? (
+              <div className="relative w-full aspect-square max-w-45 rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+                <Image src={preview} alt="QRIS Preview" fill className="object-cover" />
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <UploadCloud className="text-white h-8 w-8" />
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="h-16 w-16 rounded-3xl bg-white/5 flex items-center justify-center text-white/20 group-hover:text-[#D4AF37] group-hover:bg-[#D4AF37]/10 transition-all duration-500">
+                  <UploadCloud size={32} />
+                </div>
+                <div>
+                  <p className="text-white font-bold text-sm">Pilih Screenshot QRIS</p>
+                  <p className="text-white/20 text-[10px] mt-1 uppercase tracking-tighter font-bold">PNG atau JPG up to 2MB</p>
+                </div>
+              </>
+            )}
+
+            <input
+              type="file"
+              name="qrisFile"
+              ref={fileInputRef}
+              className="hidden"
+              accept="image/*"
+              onChange={handleFileChange}
+            />
+          </div>
+
+          <div className="p-4 bg-blue-500/5 border border-blue-500/10 rounded-2xl flex gap-3 items-start">
+            <Info size={16} className="text-blue-400 shrink-0 mt-0.5" />
+            <p className="text-[10px] text-blue-400/80 leading-relaxed italic">
+              Gunakan fitur <strong>&quot;Simpan QR&quot;</strong> di aplikasi M-Bank/E-Wallet Anda atau foto stiker QRIS fisik Anda secara tegak lurus.
+            </p>
+          </div>
         </div>
       </div>
 
