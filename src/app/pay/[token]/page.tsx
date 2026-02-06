@@ -8,6 +8,7 @@ import { RealtimeRefresher } from "@/components/shared/RealTimeRefresher"
 import Image from "next/image"
 import { ShieldCheck, User, Home, Calendar, Wallet, Clock, CheckCircle2 } from "lucide-react"
 
+export const revalidate = 0
 export default async function PublicPaymentPage(props: { params: Promise<{ token: string }> }) {
   const { token } = await props.params;
 

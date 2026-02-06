@@ -10,7 +10,6 @@ import { createClient } from "@/lib/supabase-server";
  */
 export async function confirmPayment(transactionId: string) {
   try {
-    // Ambil token dulu untuk revalidate path publik penyewa
     const transaction = await prisma.transaction.findUnique({
       where: { id: transactionId },
       select: { token: true },
@@ -23,15 +22,19 @@ export async function confirmPayment(transactionId: string) {
       data: {
         status: TransactionStatus.PAID,
         paidAt: new Date(),
-        updatedAt: new Date(), // Sesuai instruksi penambahan field
+        updatedAt: new Date(),
       },
     });
 
-    // Refresh Dashboard Owner
+    const supabaseServer = await createClient();
+    await supabaseServer.channel(`pay-${transaction.token}`).send({
+      type: "broadcast",
+      event: "payment-success",
+      payload: { message: "LUNAS" },
+    });
+
     revalidatePath("/dashboard/transactions");
     revalidatePath("/dashboard");
-
-    // REFRESH Halaman Publik Penyewa (Penting!)
     revalidatePath(`/pay/${transaction.token}`, "page");
 
     return { success: true };

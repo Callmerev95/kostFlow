@@ -1,7 +1,7 @@
 "use client"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CopyButton } from "./pay/CopyButton"
+import { CopyButton } from "./CopyButton"
 import Image from "next/image"
 import { Landmark, Smartphone, QrCode, Info } from "lucide-react"
 
