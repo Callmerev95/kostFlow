@@ -38,7 +38,7 @@
 
 1. **Clone the Repository**
    ```bash
-   git clone [https://github.com/username/kost-flow.git](https://github.com/username/kost-flow.git)
+   git clone https://github.com/Callmerev95/kostFlow.git
    cd kost-flow
    ```
 2. **Install Dependensi**
