@@ -2,6 +2,19 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
+  const url = new URL(request.url);
+
+  // OPTIMASI: Langsung bypass jika request adalah untuk file statis PWA
+  // Ini mencegah overhead eksekusi auth pada file publik
+  if (
+    url.pathname === "/sw.js" ||
+    url.pathname === "/worker-push.js" ||
+    url.pathname.startsWith("/icons/") ||
+    url.pathname === "/manifest.json"
+  ) {
+    return NextResponse.next();
+  }
+
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -39,10 +52,7 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const url = new URL(request.url);
-
   // 1. PROTEKSI REVERSE: Jika sudah login, jangan boleh ke /login, /register, atau /forgot-password
-  // Alihkan langsung ke /dashboard
   const authPages = ["/login", "/register", "/forgot-password"];
   if (user && authPages.includes(url.pathname)) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
@@ -64,12 +74,15 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Kita perluas matcher-nya agar mencakup semua halaman auth dan dashboard
+  /*
+   * Matcher ini menggunakan pola Regex Negatif untuk mengecualikan:
+   * - api (API routes)
+   * - _next/static (static files)
+   * - _next/image (image optimization files)
+   * - favicon.ico, manifest.json, sw.js, worker-push.js (PWA & metadata)
+   * - icons (folder icon PWA)
+   */
   matcher: [
-    "/dashboard/:path*",
-    "/login",
-    "/register",
-    "/forgot-password",
-    "/update-password",
+    "/((?!api|_next/static|_next/image|favicon.ico|manifest.json|sw.js|worker-push.js|icons).*)",
   ],
 };
