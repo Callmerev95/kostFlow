@@ -3,7 +3,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { signUpSchema } from "@/lib/zod"; // Sesuai path di catatan lo
+import { signUpSchema } from "@/lib/zod";
 import { revalidatePath } from "next/cache";
 
 /**
