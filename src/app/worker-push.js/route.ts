@@ -1,21 +1,34 @@
 import { NextResponse } from "next/server";
 
-/**
- * API Route ini bertindak sebagai "Pabrik Script" virtual.
- * Alih-alih mengandalkan file fisik di folder public yang sering dihapus library PWA,
- */
 export async function GET() {
   const workerCode = `
+    // 1. Memaksa Service Worker baru langsung aktif tanpa menunggu tab ditutup
+    self.addEventListener("install", () => {
+      self.skipWaiting();
+    });
+
+    // 2. Memastikan Service Worker langsung mengambil kendali halaman segera setelah aktif
+    self.addEventListener("activate", (event) => {
+      event.waitUntil(clients.claim());
+    });
+
     self.addEventListener("push", (event) => {
-      console.log("[Service Worker] Push Received.");
-      const data = event.data ? event.data.json() : {};
-      
+      let data = {};
+      try {
+        data = event.data ? event.data.json() : {};
+      } catch (e) {
+        console.error("[Service Worker] Push data error:", e);
+      }
+
       const title = data.title || "KostFlow Update";
       const options = {
-        body: data.body || "Ada informasi baru untuk Anda.",
+        body: data.body || "Ada pembaruan penting untuk Anda.",
         icon: "/icons/icon-192x192.png",
         badge: "/icons/icon-192x192.png",
-        vibrate: [100, 50, 100],
+        tag: "kostflow-urgent", // Mengelompokkan notif agar tidak menumpuk
+        renotify: true,        // Tetap getar/bunyi meskipun tag-nya sama
+        requireInteraction: true, // Notifikasi tidak akan hilang sampai diklik/swipe user
+        vibrate: [200, 100, 200],
         data: {
           url: data.url || "/dashboard",
         },
@@ -25,18 +38,14 @@ export async function GET() {
     });
 
     self.addEventListener("notificationclick", (event) => {
-      console.log("[Service Worker] Notification click Received.");
       event.notification.close();
-
       event.waitUntil(
         clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
-          // Jika tab sudah terbuka, fokus ke tab tersebut
           for (const client of clientList) {
             if (client.url === event.notification.data.url && "focus" in client) {
               return client.focus();
             }
           }
-          // Jika belum ada tab terbuka, buka tab baru
           if (clients.openWindow) {
             return clients.openWindow(event.notification.data.url);
           }
@@ -49,7 +58,6 @@ export async function GET() {
     headers: {
       "Content-Type": "application/javascript",
       "Service-Worker-Allowed": "/",
-
       "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
     },
   });
