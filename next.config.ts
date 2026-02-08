@@ -7,8 +7,11 @@ const withPWA = withPWAInit({
   aggressiveFrontEndNavCaching: true,
   reloadOnOnline: true,
   disable: process.env.NODE_ENV === "development",
+
+  customWorkerSrc: "src/scripts",
   workboxOptions: {
     disableDevLogs: true,
+
     importScripts: ["/worker-push.js"],
   },
 });
