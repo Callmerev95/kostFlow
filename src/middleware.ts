@@ -4,8 +4,8 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function middleware(request: NextRequest) {
   const url = new URL(request.url);
 
-  // OPTIMASI: Langsung bypass jika request adalah untuk file statis PWA
-  // Ini mencegah overhead eksekusi auth pada file publik
+  // OPTIMASI: Langsung bypass jika request adalah untuk file statis atau Route Handler PWA
+  // Ini krusial agar browser bisa membaca worker-push.js tanpa dicegat Auth Supabase
   if (
     url.pathname === "/sw.js" ||
     url.pathname === "/worker-push.js" ||
@@ -76,11 +76,9 @@ export async function middleware(request: NextRequest) {
 export const config = {
   /*
    * Matcher ini menggunakan pola Regex Negatif untuk mengecualikan:
-   * - api (API routes)
-   * - _next/static (static files)
-   * - _next/image (image optimization files)
-   * - favicon.ico, manifest.json, sw.js, worker-push.js (PWA & metadata)
-   * - icons (folder icon PWA)
+   * - api (API routes, kecuali push)
+   * - _next/static & _next/image (Next.js internals)
+   * - favicon, manifest, sw.js, worker-push.js, icons (PWA assets)
    */
   matcher: [
     "/((?!api|_next/static|_next/image|favicon.ico|manifest.json|sw.js|worker-push.js|icons).*)",
